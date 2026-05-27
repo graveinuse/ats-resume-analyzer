@@ -580,47 +580,67 @@ function escapeHtml(s) {
 
 function renderPatches(d) {
   const prevScore = analysisData ? Math.round(analysisData.composite) : '—';
-  const newScore  = Math.round(d.projected_score || 0);
-  const delta     = analysisData ? newScore - Math.round(analysisData.composite) : 0;
-
-  rewriteResults.innerHTML = `
-    <div class="projected-banner" style="animation:fadeUp 0.4s ease both">
-      <div><div class="proj-score">${newScore}</div></div>
-      <div>
-        <div class="proj-label">Projected Score After Patches</div>
-        <div class="proj-sub">was ${prevScore} · ${d.patches.length} patches applied · out of 100</div>
+    const newScore  = Math.round(d.projected_score || 0);
+    const delta     = analysisData ? newScore - Math.round(analysisData.composite) : 0;
+ 
+    const validCount   = d.patches.filter(p => p.valid).length;
+    const invalidCount = d.patches.length - validCount;
+ 
+    rewriteResults.innerHTML = `
+      <div class="projected-banner" style="animation:fadeUp 0.4s ease both">
+        <div><div class="proj-score">${newScore}</div></div>
+        <div>
+          <div class="proj-label">Projected Score After Patches</div>
+          <div class="proj-sub">was ${prevScore} · ${validCount} verified patches · ${invalidCount} need manual check</div>
+        </div>
+        <div class="proj-delta">${delta>0?'+':''}${delta}</div>
       </div>
-      <div class="proj-delta">${delta>0?'+':''}${delta}</div>
-    </div>
-
-    ${d.summary?`<div class="card" style="margin-bottom:14px;animation:fadeUp 0.4s 0.1s ease both"><div class="card-title"><span class="card-title-icon">💬</span> Rewrite Strategy</div><div class="rewrite-summary">${d.summary}</div></div>`:''}
-
-    <div class="card" style="animation:fadeUp 0.4s 0.2s ease both">
-      <div class="card-title"><span class="card-title-icon">🔧</span> ${d.patches.length} LaTeX Patches — Apply in Order</div>
-      <div class="patch-list">
-        ${d.patches.map((p,i) => `
-          <div class="patch-card">
-            <div class="patch-header">
-              <div class="patch-num">${p.id||i+1}</div>
-              <div class="patch-section">${p.section||'Main.tex'}</div>
-              <div class="patch-reason">${p.reason||''}</div>
-            </div>
-            <div class="patch-body">
-              <div>
-                <div class="patch-col-label find-lbl">🔴 FIND (exact)</div>
-                <div class="patch-code find-code">${escapeHtml(p.find||'')}</div>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(p.find||'')});this.textContent='✓ Copied'">📋 Copy</button>
+ 
+      ${d.summary?`<div class="card" style="margin-bottom:14px;animation:fadeUp 0.4s 0.1s ease both"><div class="card-title"><span class="card-title-icon">💬</span> Rewrite Strategy</div><div class="rewrite-summary">${d.summary}</div></div>`:''}
+ 
+      <div class="card" style="animation:fadeUp 0.4s 0.2s ease both">
+        <div class="card-title">
+          <span class="card-title-icon">🔧</span>
+          ${d.patches.length} LaTeX Patches
+          <span style="margin-left:auto;font-size:10px;">
+            <span style="color:var(--green)">✓ ${validCount} verified</span>
+            ${invalidCount > 0 ? `&nbsp;·&nbsp;<span style="color:var(--amber)">⚠ ${invalidCount} check manually</span>` : ''}
+          </span>
+        </div>
+        <div class="patch-list">
+          ${d.patches.map((p,i) => `
+            <div class="patch-card" style="border-color:${p.valid ? 'var(--border)' : 'var(--amber-border)'}">
+              <div class="patch-header">
+                <div class="patch-num" style="background:${p.valid ? 'var(--teal-bg)' : 'var(--amber-bg)'};color:${p.valid ? 'var(--teal)' : 'var(--amber)'};border-color:${p.valid ? 'var(--teal-border)' : 'var(--amber-border)'};">${p.id||i+1}</div>
+                <div class="patch-section">${p.section||'Main.tex'}</div>
+                ${p.valid
+                  ? `<span style="margin-left:6px;font-size:10px;color:var(--green);">✓ exact match</span>`
+                  : `<span style="margin-left:6px;font-size:10px;color:var(--amber);">⚠ verify manually</span>`
+                }
+                <div class="patch-reason">${p.reason||''}</div>
               </div>
-              <div>
-                <div class="patch-col-label replace-lbl">🟢 REPLACE WITH</div>
-                <div class="patch-code replace-code">${escapeHtml(p.replace||'')}</div>
-                <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(p.replace||'')});this.textContent='✓ Copied'">📋 Copy</button>
+              ${!p.valid && p.validation_msg ? `
+                <div style="padding:6px 16px;font-size:10px;font-family:'Courier New',monospace;color:var(--amber);background:var(--amber-bg);border-bottom:1px solid var(--border);">
+                  ⚠ ${p.validation_msg}
+                  ${p.suggested_find ? `<br>💡 Suggested: <code>${escapeHtml(p.suggested_find.substring(0,80))}</code>` : ''}
+                </div>` : ''}
+              <div class="patch-body">
+                <div>
+                  <div class="patch-col-label find-lbl">🔴 FIND (exact)</div>
+                  <div class="patch-code find-code">${escapeHtml(p.find||'')}</div>
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(p.find||'')});this.textContent='✓ Copied'">📋 Copy</button>
+                </div>
+                <div>
+                  <div class="patch-col-label replace-lbl">🟢 REPLACE WITH</div>
+                  <div class="patch-code replace-code">${escapeHtml(p.replace||'')}</div>
+                  <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(p.replace||'')});this.textContent='✓ Copied'">📋 Copy</button>
+                </div>
               </div>
-            </div>
-          </div>`).join('')}
+            </div>`).join('')}
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }
 }
 </script>
 </body>
