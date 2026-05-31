@@ -440,8 +440,20 @@ function checkReady() {
 }
 resumeFile.addEventListener('change', () => {
   const f = resumeFile.files[0];
-  if (f) { fileLabel.textContent = '✓ ' + (f.name.length>28 ? f.name.substring(0,26)+'…' : f.name); uploadZone.classList.add('has-file'); }
-  else   { fileLabel.textContent = 'Click to upload or drag & drop'; uploadZone.classList.remove('has-file'); }
+  if (f) {
+    const name = f.name.length > 28 ? f.name.substring(0, 26) + '…' : f.name;
+    fileLabel.textContent = '✓ ' + name;
+    fileLabel.style.color = 'var(--green)';
+    fileLabel.style.fontWeight = '700';
+    uploadZone.classList.add('has-file');
+    uploadZone.querySelector('.upload-icon').textContent = '✅';
+  } else {
+    fileLabel.textContent = 'Click to upload or drag & drop';
+    fileLabel.style.color = '';
+    fileLabel.style.fontWeight = '';
+    uploadZone.classList.remove('has-file');
+    uploadZone.querySelector('.upload-icon').textContent = '📄';
+  }
   checkReady();
 });
 jdText.addEventListener('input', checkReady);
