@@ -322,12 +322,12 @@ textarea::placeholder { color:var(--text3); }
     <div class="input-grid">
       <div class="input-box">
         <div class="input-label">Resume — PDF or DOCX</div>
-        <div class="upload-zone" id="uploadZone">
-          <input type="file" id="resumeFile" accept=".pdf,.docx" />
-          <div class="upload-icon">📄</div>
-          <div class="upload-label" id="fileLabel">Click to upload or drag & drop</div>
-          <div class="upload-sub">.pdf or .docx accepted</div>
-        </div>
+<div class="upload-zone" id="uploadZone" onclick="document.getElementById('resumeFile').click()">
+  <input type="file" id="resumeFile" accept=".pdf,.docx" style="display:none;" />
+  <div class="upload-icon" id="uploadIcon">📄</div>
+  <div class="upload-label" id="fileLabel">Click to upload or drag & drop</div>
+  <div class="upload-sub">.pdf or .docx accepted</div>
+</div>
       </div>
       <div class="input-box">
         <div class="input-label">Job Description</div>
